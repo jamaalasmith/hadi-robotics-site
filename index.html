@@ -385,7 +385,7 @@
       var submitBtn = form.querySelector('button.submit');
 
       // Google Apps Script Web App endpoint (doPost handler, writes to your Sheet)
-      var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvrY3rv_QfdRZtrxylNeZXEgzb6z1ozFqspk23tYLMtbDEhWQ5joT2wKasFWxtL1RD_g/exec';
+      var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ-VAiye_8cRiPQMEEvfohrcciv03TXE3c6FAQ5sH2QXAz61OMJar71kwh0iiqCvnD/exec';
 
       function showState(msg, isError) {
         state.textContent = msg;
@@ -410,18 +410,20 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting…';
 
-        // text/plain avoids a CORS preflight (OPTIONS) request against Apps Script,
-        // which doGet/doPost-only deployments don't always handle cleanly.
+        // Apps Script's /exec endpoint responds via a redirect to googleusercontent.com
+        // that doesn't carry CORS headers, so the browser blocks reading the response
+        // no matter what content-type we send. Since doPost always writes the row
+        // before returning (and always reports success either way), we fire the
+        // request in no-cors mode and treat "the request didn't throw" as success —
+        // we just can't read the response body back.
         fetch(SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ email: email })
         })
-          .then(function (res) {
-            if (!res.ok) throw new Error('Request failed with status ' + res.status);
-            return res.json();
-          })
           .then(function () {
+            console.log('Waitlist submit sent (response unreadable due to Apps Script CORS redirect, this is expected)');
             showState('You\'re on the list. We\'ll email you at ' + email + ' when it\'s ready.', false);
             form.reset();
           })
