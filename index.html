@@ -1,258 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HadiRobotics — Mission control for robots, from your browser</title>
-<meta name="description" content="A telemetry and command dashboard for robots. Join the waitlist.">
-<style>
-  :root {
-    --bg: #0a0d0a;
-    --panel: #10140f;
-    --line: #22281f;
-    --amber: #ffb347;
-    --amber-dim: #8a6a2f;
-    --green: #7fd858;
-    --text: #d9ded4;
-    --text-dim: #7c8473;
-    --mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HadiRobotics — Mission control for robots, from your browser</title>
+  <meta name="description" content="A telemetry and command dashboard for robots. Join the waitlist.">
+  <style>
+    :root {
+      --bg: #0a0d0a;
+      --panel: #10140f;
+      --line: #22281f;
+      --amber: #ffb347;
+      --amber-dim: #8a6a2f;
+      --green: #7fd858;
+      --text: #d9ded4;
+      --text-dim: #7c8473;
+      --mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-  * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-  html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(127,216,88,0.06), transparent),
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
-  }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(127, 216, 88, 0.06), transparent),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0px, rgba(255, 255, 255, 0.012) 1px, transparent 1px, transparent 3px);
+    }
 
-  a { color: inherit; }
+    a {
+      color: inherit;
+    }
 
-  ::selection { background: var(--amber); color: #10140f; }
+    ::selection {
+      background: var(--amber);
+      color: #10140f;
+    }
 
-  .wrap {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
+    .wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
 
-  /* ---- top bar: readout strip ---- */
-  .readout {
-    border-bottom: 1px solid var(--line);
-    background: rgba(255,255,255,0.015);
-  }
-  .readout-inner {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 10px 24px;
-    display: flex;
-    gap: 28px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    color: var(--text-dim);
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  .readout-inner span.tag { color: var(--green); }
-  .blink {
-    display: inline-block;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    margin-right: 6px;
-    box-shadow: 0 0 6px var(--green);
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.25; }
-  }
+    /* ---- top bar: readout strip ---- */
+    .readout {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.015);
+    }
 
-  /* ---- header / logo ---- */
-  header {
-    padding: 64px 0 8px;
-  }
-  .logo {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 10px;
-    font-family: var(--mono);
-    font-size: 14px;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-  }
-  .logo b {
-    color: var(--text);
-    font-weight: 600;
-  }
-  .logo .dot { color: var(--amber); }
+    .readout-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 10px 24px;
+      display: flex;
+      gap: 28px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
 
-  /* ---- hero ---- */
-  .hero {
-    padding: 56px 0 40px;
-    border-bottom: 1px solid var(--line);
-  }
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--amber-dim);
-    margin: 0 0 18px;
-  }
-  h1 {
-    font-size: clamp(2.1rem, 5.4vw, 3.4rem);
-    line-height: 1.08;
-    letter-spacing: -0.01em;
-    margin: 0 0 22px;
-    font-weight: 600;
-    max-width: 14ch;
-  }
-  h1 .accent { color: var(--green); }
-  .sub {
-    font-size: 17px;
-    color: var(--text-dim);
-    max-width: 46ch;
-    margin: 0 0 40px;
-  }
+    .readout-inner span.tag {
+      color: var(--green);
+    }
 
-  /* ---- waitlist form ---- */
-  .form-row {
-    display: flex;
-    gap: 10px;
-    max-width: 440px;
-    flex-wrap: wrap;
-  }
-  input[type="email"] {
-    flex: 1 1 240px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    padding: 14px 16px;
-    border-radius: 3px;
-    outline: none;
-    transition: border-color 0.15s ease;
-  }
-  input[type="email"]::placeholder { color: var(--text-dim); }
-  input[type="email"]:focus {
-    border-color: var(--green);
-  }
-  button.submit {
-    background: var(--green);
-    color: #0a0d0a;
-    border: none;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 14px 20px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: transform 0.1s ease, box-shadow 0.15s ease;
-  }
-  button.submit:hover { box-shadow: 0 0 0 3px rgba(127,216,88,0.18); }
-  button.submit:active { transform: scale(0.98); }
-  button.submit:focus-visible,
-  input[type="email"]:focus-visible {
-    outline: 2px solid var(--green);
-    outline-offset: 2px;
-  }
+    .blink {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 6px;
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
 
-  .form-note {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 12px;
-  }
+    @keyframes pulse {
 
-  .form-state {
-    display: none;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--green);
-    margin-top: 16px;
-    padding: 12px 14px;
-    border: 1px solid rgba(127,216,88,0.3);
-    border-radius: 3px;
-    background: rgba(127,216,88,0.06);
-  }
-  .form-state.show { display: block; }
-  .form-state.err {
-    color: var(--amber);
-    border-color: rgba(255,179,71,0.35);
-    background: rgba(255,179,71,0.06);
-  }
+      0%,
+      100% {
+        opacity: 1;
+      }
 
-  /* ---- what section ---- */
-  .section {
-    padding: 48px 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .section h2 {
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin: 0 0 24px;
-  }
-  .cap-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-  }
-  .cap {
-    background: var(--bg);
-    padding: 22px;
-  }
-  .cap .n {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--amber-dim);
-    margin-bottom: 10px;
-  }
-  .cap h3 {
-    font-size: 15px;
-    margin: 0 0 8px;
-    font-weight: 600;
-  }
-  .cap p {
-    font-size: 13.5px;
-    color: var(--text-dim);
-    margin: 0;
-  }
+      50% {
+        opacity: 0.25;
+      }
+    }
 
-  footer {
-    padding: 32px 0 64px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+    /* ---- header / logo ---- */
+    header {
+      padding: 64px 0 8px;
+    }
 
-  @media (prefers-reduced-motion: reduce) {
-    .blink { animation: none; }
-  }
-</style>
+    .logo {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+
+    .logo b {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .logo .dot {
+      color: var(--amber);
+    }
+
+    /* ---- hero ---- */
+    .hero {
+      padding: 56px 0 40px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber-dim);
+      margin: 0 0 18px;
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 5.4vw, 3.4rem);
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      margin: 0 0 22px;
+      font-weight: 600;
+      max-width: 14ch;
+    }
+
+    h1 .accent {
+      color: var(--green);
+    }
+
+    .sub {
+      font-size: 17px;
+      color: var(--text-dim);
+      max-width: 46ch;
+      margin: 0 0 40px;
+    }
+
+    /* ---- waitlist form ---- */
+    .form-row {
+      display: flex;
+      gap: 10px;
+      max-width: 440px;
+      flex-wrap: wrap;
+    }
+
+    input[type="email"] {
+      flex: 1 1 240px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 14px 16px;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input[type="email"]::placeholder {
+      color: var(--text-dim);
+    }
+
+    input[type="email"]:focus {
+      border-color: var(--green);
+    }
+
+    button.submit {
+      background: var(--green);
+      color: #0a0d0a;
+      border: none;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 14px 20px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+    }
+
+    button.submit:hover {
+      box-shadow: 0 0 0 3px rgba(127, 216, 88, 0.18);
+    }
+
+    button.submit:active {
+      transform: scale(0.98);
+    }
+
+    button.submit:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    button.submit:focus-visible,
+    input[type="email"]:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    .form-note {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 12px;
+    }
+
+    .form-state {
+      display: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--green);
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(127, 216, 88, 0.3);
+      border-radius: 3px;
+      background: rgba(127, 216, 88, 0.06);
+    }
+
+    .form-state.show {
+      display: block;
+    }
+
+    .form-state.err {
+      color: var(--amber);
+      border-color: rgba(255, 179, 71, 0.35);
+      background: rgba(255, 179, 71, 0.06);
+    }
+
+    /* ---- what section ---- */
+    .section {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin: 0 0 24px;
+    }
+
+    .cap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+
+    .cap {
+      background: var(--bg);
+      padding: 22px;
+    }
+
+    .cap .n {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--amber-dim);
+      margin-bottom: 10px;
+    }
+
+    .cap h3 {
+      font-size: 15px;
+      margin: 0 0 8px;
+      font-weight: 600;
+    }
+
+    .cap p {
+      font-size: 13.5px;
+      color: var(--text-dim);
+      margin: 0;
+    }
+
+    footer {
+      padding: 32px 0 64px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blink {
+        animation: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
   <div class="readout">
@@ -272,10 +338,12 @@
     <section class="hero">
       <p class="eyebrow">Coming soon</p>
       <h1>Mission control for robots, <span class="accent">from your browser.</span></h1>
-      <p class="sub">Command, track, and visualize robots — simulated today, real hardware next — from a single dashboard. No install required.</p>
+      <p class="sub">Command, track, and visualize robots — simulated today, real hardware next — from a single
+        dashboard. No install required.</p>
 
       <form id="waitlistForm" class="form-row" novalidate>
-        <input type="email" id="emailInput" name="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address">
+        <input type="email" id="emailInput" name="email" placeholder="you@example.com" autocomplete="email" required
+          aria-label="Email address">
         <button type="submit" class="submit">Join waitlist</button>
       </form>
       <p class="form-note">// No spam. One email when we launch.</p>
@@ -309,54 +377,74 @@
     </footer>
   </div>
 
-<script>
-  (function () {
-    var form = document.getElementById('waitlistForm');
-    var input = document.getElementById('emailInput');
-    var state = document.getElementById('formState');
-    var STORAGE_KEY = 'hadirobotics_waitlist';
+  <script>
+    (function () {
+      var form = document.getElementById('waitlistForm');
+      var input = document.getElementById('emailInput');
+      var state = document.getElementById('formState');
+      var submitBtn = form.querySelector('button.submit');
 
-    function showState(msg, isError) {
-      state.textContent = msg;
-      state.classList.remove('err');
-      if (isError) state.classList.add('err');
-      state.classList.add('show');
-    }
+      // Google Apps Script Web App endpoint (doPost handler, writes to your Sheet)
+      var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvrY3rv_QfdRZtrxylNeZXEgzb6z1ozFqspk23tYLMtbDEhWQ5joT2wKasFWxtL1RD_g/exec';
 
-    function isValidEmail(value) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    }
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var email = input.value.trim();
-
-      if (!isValidEmail(email)) {
-        showState('That doesn\'t look like a valid email — double check and try again.', true);
-        return;
+      function showState(msg, isError) {
+        state.textContent = msg;
+        state.classList.remove('err');
+        if (isError) state.classList.add('err');
+        state.classList.add('show');
       }
 
-      // No backend yet: store locally so nothing is lost, swap in a real endpoint later.
-      try {
-        var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        if (list.indexOf(email) === -1) list.push(email);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-      } catch (err) {
-        // localStorage unavailable — fail silently, still confirm to user
+      function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
       }
 
-      showState('You\'re on the list. We\'ll email you at ' + email + ' when it\'s ready.', false);
-      form.reset();
-    });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = input.value.trim();
 
-    // Readout strip: cosmetic status ticker
-    var statuses = ['AWAITING_LAUNCH', 'STANDBY', 'IN_DEVELOPMENT'];
-    var i = 0;
-    setInterval(function () {
-      i = (i + 1) % statuses.length;
-    }, 4000);
-  })();
-</script>
+        if (!isValidEmail(email)) {
+          showState('That doesn\'t look like a valid email — double check and try again.', true);
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+
+        // text/plain avoids a CORS preflight (OPTIONS) request against Apps Script,
+        // which doGet/doPost-only deployments don't always handle cleanly.
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ email: email })
+        })
+          .then(function (res) {
+            if (!res.ok) throw new Error('Request failed with status ' + res.status);
+            return res.json();
+          })
+          .then(function () {
+            showState('You\'re on the list. We\'ll email you at ' + email + ' when it\'s ready.', false);
+            form.reset();
+          })
+          .catch(function (err) {
+            console.error('Waitlist submit failed:', err);
+            showState('Something went wrong — please try again in a moment.', true);
+          })
+          .finally(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Join waitlist';
+          });
+      });
+
+      // Readout strip: cosmetic status ticker
+      var statuses = ['AWAITING_LAUNCH', 'STANDBY', 'IN_DEVELOPMENT'];
+      var i = 0;
+      setInterval(function () {
+        i = (i + 1) % statuses.length;
+      }, 4000);
+
+    })();
+  </script>
 
 </body>
+
 </html>
